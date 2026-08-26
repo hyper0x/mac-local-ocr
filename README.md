@@ -50,7 +50,7 @@ cd mac-local-ocr
 | 子命令 | 作用 |
 |---|---|
 | `mac-ocr check` | 体检三件套就绪状态 |
-| `mac-ocr setup [--force] [--base-url <镜像>] [--bin-dir <目录>] [--venv-dir <目录>]` | 一键安装/修复（`--force` 强制重下语言包） |
+| `mac-ocr setup [--force] [--mirror-url <镜像>] [--bin-dir <目录>] [--venv-dir <目录>]` | 一键安装/修复（`--force` 强制重下语言包） |
 | `mac-ocr ocr <图片> [选项]` | Apple Vision 识别（等价旧 vision-ocr） |
 
 **安装路径**（默认中性化，setup 时会打印将要安装到哪）：
@@ -129,7 +129,7 @@ brew install tesseract                 # 自带 eng（英文）
 
 语言包说明：tesseract 中文模型自 2018 年后官方未重训，`tesseract-lang` 的 685MB 语言包是 fast 版。本项目 `mac-ocr setup` 只下载**标准版**（chi_sim / chi_tra / 竖排，共约 100MB），放 `/opt/homebrew/share/tessdata/`。
 
-> 网络提示：国内直连 GitHub raw 常超时。`mac-ocr setup` 内置 `ghfast.top` / `gh-proxy.com` 镜像自动切换；如需指定：`./scripts/mac-ocr setup --base-url https://gh-proxy.com`（或环境变量 `BASE_URL=...`）。
+> 网络提示：国内直连 GitHub raw 常超时。`mac-ocr setup` 内置 `ghfast.top` / `gh-proxy.com` 镜像自动切换；如需指定：`./scripts/mac-ocr setup --mirror-url https://gh-proxy.com`（或环境变量 `MAC_OCR_MIRROR_URL=...`）。
 
 ### 2. vision-ocr（Apple Vision）
 

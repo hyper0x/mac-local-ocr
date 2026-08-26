@@ -108,8 +108,8 @@ def probe_size(url: str, timeout: int = 15) -> str:
 
 
 def pick_mirror() -> str:
-    """按 MIRRORS 优先级探测可用镜像；环境变量 BASE_URL 可强制指定。"""
-    override = os.environ.get("BASE_URL")
+    """按 MIRRORS 优先级探测可用镜像；环境变量 MAC_OCR_MIRROR_URL 可强制指定。"""
+    override = os.environ.get("MAC_OCR_MIRROR_URL")
     if override:
         return override
     for m in MIRRORS:
@@ -148,7 +148,7 @@ def setup_tesseract(force=False):
     print("↓ 探测语言包镜像 ...")
     base = pick_mirror()
     if not base:
-        print("✘ 镜像不可达，可设 BASE_URL=<镜像> 重试")
+        print("✘ 镜像不可达，可设 --mirror-url 或 MAC_OCR_MIRROR_URL=<镜像> 重试")
         return False
     print(f"  使用镜像: {base}")
 
@@ -478,7 +478,7 @@ _MAIN_EPILOG = """\
   mac-ocr check                          体检三件套就绪状态
   mac-ocr setup                          一键安装/修复（幂等，缺什么装什么）
   mac-ocr setup --force                  强制重下已存在的语言包
-  mac-ocr setup --base-url https://gh-proxy.com   指定镜像（国内直连超时用）
+  mac-ocr setup --mirror-url https://gh-proxy.com   指定镜像（国内直连超时用）
   mac-ocr ocr 截图.png                   识别文字（默认中文+英文）
   mac-ocr ocr 截图.png --json            JSON 输出（含置信度/坐标）
   mac-ocr ocr 截图.png --lang en-US --level accurate
@@ -508,7 +508,7 @@ _SETUP_EPILOG = """\
 示例：
   mac-ocr setup
   mac-ocr setup --force
-  mac-ocr setup --base-url https://gh-proxy.com
+  mac-ocr setup --mirror-url https://gh-proxy.com
   mac-ocr setup --bin-dir ~/bin --venv-dir ~/.venvs/mac-ocr
 """
 
@@ -555,8 +555,8 @@ def build_parser():
     )
     p_setup.add_argument("--force", action="store_true",
                          help="强制重下已存在的语言包（默认已有则跳过）")
-    p_setup.add_argument("--base-url", default=None, metavar="URL",
-                         help="指定语言包下载镜像（默认自动探测 ghfast.top / gh-proxy.com）")
+    p_setup.add_argument("--mirror-url", default=None, metavar="URL",
+                         help="指定语言包下载镜像前缀（默认自动探测 ghfast.top / gh-proxy.com）")
     p_setup.add_argument("--bin-dir", default=None, metavar="DIR",
                          help="vision-ocr 兼容命令安装目录（默认 ~/.local/bin）")
     p_setup.add_argument("--venv-dir", default=None, metavar="DIR",
@@ -612,9 +612,9 @@ def main(argv=None):
     parser = build_parser()
     args, _unknown = parser.parse_known_args(argv)
 
-    base_url = getattr(args, "base_url", None)
-    if base_url:
-        os.environ["BASE_URL"] = base_url
+    mirror_url = getattr(args, "mirror_url", None)
+    if mirror_url:
+        os.environ["MAC_OCR_MIRROR_URL"] = mirror_url
 
     if args.cmd == "setup":
         return cmd_setup(args)

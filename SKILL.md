@@ -83,6 +83,6 @@ tesseract 图片.png stdout -l chi_tra_vert   # 繁体竖排
 
 1. **rapidocr 必须带 `--with onnxruntime`**：`uv tool install rapidocr` 默认不装推理引擎，一跑就报
    `ImportError: onnxruntime is not installed`。修复：`uv tool install rapidocr --with onnxruntime`（`mac-ocr setup` 已内置）
-2. **国内直连 GitHub raw 超时**：模型/语言包下载走 `ghfast.top` / `gh-proxy.com` 镜像（`mac-ocr setup` 已内置自动切换，可用 `BASE_URL=<镜像>` 覆盖）。敏感文件不要走第三方代理
+2. **国内直连 GitHub raw 超时**：模型/语言包下载走 `ghfast.top` / `gh-proxy.com` 镜像（`mac-ocr setup` 已内置自动切换，可用 `MAC_OCR_MIRROR_URL=<镜像>` 覆盖）。敏感文件不要走第三方代理
 3. **tesseract 中文模型 2018 年后官方未重训**：中文质量一般；要强中文用 rapidocr 或 vision-ocr
 4. **中文识别输出字间带空格**（`简 体 中 文`）是 tesseract 正常格式，不是 bug
