@@ -26,7 +26,7 @@ description: macOS 本地 OCR 工具（文字识别），三件套：Apple Visio
 ## 第一步：检查就绪状态
 
 ```bash
-bash <skill目录>/scripts/mac-ocr check
+<skill目录>/scripts/mac-ocr check
 ```
 
 缺失的按输出提示补，或直接跑 `mac-ocr setup`。
@@ -71,7 +71,7 @@ tesseract 图片.png stdout -l chi_tra_vert   # 繁体竖排
 完整分步教程见 `README.md`。一键脚本：
 
 ```bash
-bash <skill目录>/scripts/mac-ocr setup
+<skill目录>/scripts/mac-ocr setup
 ```
 
 三部分：

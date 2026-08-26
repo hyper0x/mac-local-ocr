@@ -41,7 +41,18 @@ SKILL_ROOT = os.path.dirname(SCRIPT_DIR)
 BIN_DIR = os.environ.get("MAC_OCR_BIN_DIR", os.path.expanduser("~/.local/bin"))
 VENV_DIR = os.environ.get("MAC_OCR_VENV_DIR", os.path.expanduser("~/.local/share/mac-ocr/venv"))
 VENV_PY3 = os.path.join(VENV_DIR, "bin", "python3")
-TESSDATA_DIR = os.environ.get("TESSDATA_DIR", "/opt/homebrew/share/tessdata")
+def _default_tessdata_dir() -> str:
+    """动态探测 Homebrew prefix 下的 tessdata 目录（Apple Silicon: /opt/homebrew，Intel: /usr/local）。"""
+    try:
+        p = subprocess.run(["brew", "--prefix"], capture_output=True, text=True, timeout=15)
+        if p.returncode == 0 and p.stdout.strip():
+            return os.path.join(p.stdout.strip(), "share", "tessdata")
+    except Exception:
+        pass
+    return "/opt/homebrew/share/tessdata"
+
+
+TESSDATA_DIR = os.environ.get("TESSDATA_DIR") or _default_tessdata_dir()
 UPSTREAM = "https://raw.githubusercontent.com/tesseract-ocr/tessdata/main"
 MIRRORS = ["https://ghfast.top", "https://gh-proxy.com"]
 LANGS = ["chi_sim", "chi_sim_vert", "chi_tra", "chi_tra_vert"]
@@ -60,10 +71,9 @@ def need(cmd: str) -> bool:
     return shutil.which(cmd) is not None
 
 
-def run(cmd, **kw):
-    """subprocess.run 包装：默认合并输出为 utf-8 文本。"""
-    kw.setdefault("check", True)
-    return subprocess.run(cmd, **kw)
+def run(cmd) -> int:
+    """执行外部命令，返回 returncode（不抛异常；成败由调用方判断并提示）。"""
+    return subprocess.run(cmd).returncode
 
 
 def run_capture(cmd):
@@ -109,11 +119,18 @@ def pick_mirror() -> str:
 
 
 def download(url: str, dest: str) -> bool:
+    """原子下载：先写 .part 再 rename；失败清掉半截文件，避免下次被'已有'跳过。"""
+    part = dest + ".part"
     p = subprocess.run(
-        ["curl", "-fsSL", "--retry", "3", "--retry-delay", "2", "-o", dest, url],
+        ["curl", "-fsSL", "--retry", "3", "--retry-delay", "2", "-o", part, url],
         capture_output=True,
     )
-    return p.returncode == 0
+    if p.returncode == 0 and os.path.isfile(part) and os.path.getsize(part) > 0:
+        os.replace(part, dest)
+        return True
+    if os.path.isfile(part):
+        os.remove(part)
+    return False
 
 
 def setup_tesseract(force=False):
@@ -124,7 +141,9 @@ def setup_tesseract(force=False):
         print(f"✔ tesseract 已装 ({ver})")
     else:
         print("↓ 安装 tesseract ...")
-        run(["brew", "install", "tesseract"])
+        if run(["brew", "install", "tesseract"]) != 0:
+            print("✘ tesseract 安装失败（检查 Homebrew / 网络后重跑）")
+            return False
 
     print("↓ 探测语言包镜像 ...")
     base = pick_mirror()
@@ -158,12 +177,16 @@ def setup_vision():
         print("↓ 搭建 venv + pyobjc ...")
         if not os.path.isfile(venv_py):
             os.makedirs(os.path.dirname(VENV_DIR), exist_ok=True)
-            run(["uv", "venv", VENV_DIR])
-        run([
+            if run(["uv", "venv", VENV_DIR]) != 0:
+                print("✘ uv venv 创建失败")
+                return False
+        if run([
             "uv", "pip", "install", "--python", venv_py,
             "pyobjc-framework-Vision", "pyobjc-framework-Quartz",
             "pyobjc-framework-Cocoa",
-        ])
+        ]) != 0:
+            print("✘ pyobjc 安装失败（检查网络后重跑）")
+            return False
         if not _venv_has_vision(venv_py):
             print("✘ venv 建好但 Vision 不可用")
             return False
@@ -189,7 +212,9 @@ def setup_rapidocr():
         print("✔ rapidocr 已就绪（含 onnxruntime 引擎）")
         return True
     print("↓ 安装/修复 rapidocr ...")
-    run(["uv", "tool", "install", "rapidocr", "--with", "onnxruntime"])
+    if run(["uv", "tool", "install", "rapidocr", "--with", "onnxruntime"]) != 0:
+        print("✘ rapidocr 安装失败（检查网络后重跑）")
+        return False
     if _rapidocr_ok():
         print("✔ rapidocr 完成")
         return True
@@ -276,14 +301,17 @@ def cmd_check(args):
     else:
         print("❌ tesseract       未安装（brew install tesseract）")
 
-    # 2) vision-ocr
+    # 2) vision-ocr（BIN_DIR 未命中时用 PATH 兜底，避免自定义安装路径误报）
     wrapper = os.path.join(BIN_DIR, "vision-ocr")
-    if os.path.isfile(wrapper) and os.access(wrapper, os.X_OK):
-        print(f"✅ vision-ocr     {wrapper}")
+    found = wrapper if (os.path.isfile(wrapper) and os.access(wrapper, os.X_OK)) \
+        else shutil.which("vision-ocr")
+    if found:
+        note = "" if found == wrapper else "（PATH 中，非当前 BIN_DIR）"
+        print(f"✅ vision-ocr     {found} {note}")
         if not os.path.isfile(VENV_PY3):
-            print("   ⚠️ venv 缺失，vision-ocr 可能无法运行（跑 mac-ocr setup）")
+            print("   ⚠️ venv 缺失或位于自定义路径（自定义安装请 export MAC_OCR_VENV_DIR）")
     else:
-        print(f"❌ vision-ocr      未安装（{wrapper} 不存在，跑 mac-ocr setup）")
+        print("❌ vision-ocr      未安装（跑 mac-ocr setup）")
 
     # 3) rapidocr
     if need("rapidocr"):
@@ -396,9 +424,8 @@ def run_engine(args):
         return results
 
     def debug_image(image_path, results, output_path=None):
-        from Quartz import CIContext
+        from Quartz import CIContext, CGRectMake
         from AppKit import (NSImage, NSBitmapImageRep, NSBezierPath, NSColor)
-        from CoreGraphics import CGRectMake
 
         url = NSURL.fileURLWithPath_(os.path.realpath(image_path))
         ci_image = CIImage.imageWithContentsOfURL_(url)
@@ -416,7 +443,7 @@ def run_engine(args):
             w = bbox["width"] * img_w
             h = bbox["height"] * img_h
             path_obj = NSBezierPath.bezierPathWithRect_(CGRectMake(x, y, w, h))
-            path_obj.setStrokeColor_(color)
+            color.setStroke()
             path_obj.setLineWidth_(2.0)
             path_obj.stroke()
         ns_image.unlockFocus()
@@ -426,7 +453,7 @@ def run_engine(args):
         bitmap = NSBitmapImageRep.alloc().initWithData_(tiff_data)
         png_data = bitmap.representationUsingType_properties_(4, None)
         png_data.writeToFile_atomically_(output_path, True)
-        print(f"调试图片已保存: {output_path}")
+        print(f"调试图片已保存: {output_path}", file=sys.stderr)
 
     try:
         results = ocr_image(args.image, lang=args.lang, level=args.level)
@@ -495,7 +522,7 @@ _OCR_EPILOG = """\
 说明：
   - 默认 fast 精度，中文效果通常更好；置信度过低会自动回退 accurate
   - --json 输出每条含 text / confidence / bbox 归一化坐标
-  - --debug 在图上绘制红色检测框，默认保存为 <原名>_debug.png
+  - --debug 在图上绘制红色检测框，默认保存为 <原名>_debug.png（--debug-output 可指定路径）
 """
 
 
@@ -577,9 +604,10 @@ def build_parser():
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
 
-    # 兼容：mac-ocr 图片.png（第一个非选项参数不是子命令且是文件 → 补 ocr 子命令）
-    if argv and not argv[0].startswith("-") and argv[0] not in ("setup", "check", "ocr"):
-        argv.insert(0, "ocr")
+    # 兼容：mac-ocr 图片.png（省略子命令 -> 补 ocr；容忍前置 --opt=value 形式选项）
+    first_pos = next((i for i, a in enumerate(argv) if not a.startswith("-")), None)
+    if first_pos is not None and argv[first_pos] not in ("setup", "check", "ocr"):
+        argv.insert(first_pos, "ocr")
 
     parser = build_parser()
     args, _unknown = parser.parse_known_args(argv)

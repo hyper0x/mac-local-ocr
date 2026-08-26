@@ -20,12 +20,27 @@
 
 ## 快速开始
 
+### 方式一：skills CLI 安装（Agent Skills 生态）
+
+```bash
+npx skills add hyper0x/mac-local-ocr
+```
+
+装好后进入 skill 目录（全局默认 `~/.agents/skills/mac-local-ocr`），执行：
+
+```bash
+./scripts/mac-ocr setup      # 一键安装三件套（幂等，缺什么装什么）
+./scripts/mac-ocr check      # 体检，看缺啥
+```
+
+### 方式二：手动 clone
+
 ```bash
 git clone https://github.com/hyper0x/mac-local-ocr.git
 cd mac-local-ocr
 
-./scripts/mac-ocr setup      # 一键安装三件套（幂等，缺什么装什么）
-./scripts/mac-ocr check      # 体检，看缺啥
+./scripts/mac-ocr setup
+./scripts/mac-ocr check
 ```
 
 > 前置：需要 [Homebrew](https://brew.sh) 和 [uv](https://docs.astral.sh/uv/)。
@@ -50,7 +65,7 @@ cd mac-local-ocr
 export MAC_OCR_BIN_DIR=~/bin MAC_OCR_VENV_DIR=~/.venvs/mac-ocr   # 自定义路径需写入 ~/.zshrc 供识别/体检使用
 ```
 
-兼容性：`mac-ocr 图片.png` 省略子命令时自动按 `ocr` 处理；外部环境可能注入额外确认参数，本命令会自动忽略，不影响使用。
+兼容性：`mac-ocr 图片.png` 省略子命令时自动按 `ocr` 处理；在 AI agent 等自动化环境执行时，环境可能注入 `--bypass=platform/agent/task` 形式的确认参数（三段式，每段为字母数字或 `._-`），本命令自动静默接受，不影响使用。
 
 ---
 
