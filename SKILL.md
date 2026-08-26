@@ -19,7 +19,7 @@ description: macOS 本地 OCR 工具（文字识别），三件套：Apple Visio
 |---|---|
 | `mac-ocr check` | 体检三件套就绪状态 |
 | `mac-ocr setup [--force]` | 一键安装/修复三件套（幂等，可重复跑） |
-| `mac-ocr ocr <图片>` | Apple Vision 识别（等价旧 vision-ocr） |
+| `mac-ocr ocr <图片>` | Apple Vision 识别（vision-ocr 引擎） |
 
 > 兼容性：`mac-ocr 图片.png` 省略子命令时自动按 `ocr` 处理；外部环境可能注入额外确认参数，本命令会自动忽略，不影响使用。
 
@@ -51,7 +51,6 @@ mac-ocr ocr img.png --json             # JSON：文本+置信度+坐标
 mac-ocr ocr img.png --level accurate   # 精确模式
 mac-ocr ocr img.png --debug            # 输出带检测框的图片
 ```
-> `setup` 会生成兼容命令 `vision-ocr`（默认装到 `~/.local/bin/`），旧习惯直接 `vision-ocr img.png` 也可。
 
 ### rapidocr（RapidOCR / PP-OCR 模型，中文强）
 ```bash
@@ -76,7 +75,7 @@ tesseract 图片.png stdout -l chi_tra_vert   # 繁体竖排
 
 三部分：
 1. **Tesseract**：`brew install tesseract`（自带 eng）+ 标准版中文语言包（chi_sim / chi_tra / 竖排，走国内镜像自动下载，幂等可重复）
-2. **vision-ocr**：建专用 venv + 装 pyobjc（Vision/Quartz/Cocoa）+ 生成兼容命令 `vision-ocr`
+2. **vision-ocr**：建专用 venv + 装 pyobjc（Vision/Quartz/Cocoa）
 3. **rapidocr**：`uv tool install rapidocr --with onnxruntime`
 
 ## 踩过的坑（务必遵守）
