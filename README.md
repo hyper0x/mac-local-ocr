@@ -110,12 +110,37 @@ tesseract 图片.png stdout -l chi_tra_vert   # 繁体竖排
 
 ### 0. 前置
 
+#### 0.1 安装 Homebrew
+
+macOS 的包管理器，`mac-ocr setup` 用它安装 Tesseract：
+
 ```bash
-# Homebrew
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-# uv
+```
+
+装完验证：
+
+```bash
+brew --version
+```
+
+> 国内网络提示：官方安装脚本走 GitHub，可能较慢或超时；可参考 [Homebrew 镜像使用帮助](https://mirrors.tuna.tsinghua.edu.cn/help/homebrew/) 用国内镜像加速。
+
+#### 0.2 安装 uv
+
+Python 包与环境管理工具，`mac-ocr setup` 用它搭建 Apple Vision 的 venv 并安装 OCR 引擎依赖：
+
+```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
+
+装完重开终端（或 `source ~/.zshrc`）后验证：
+
+```bash
+uv --version
+```
+
+> uv 官方安装脚本默认装到 `~/.local/bin` 并自动写 shell 配置；若 `uv` 命令未找到，把 `export PATH="$HOME/.local/bin:$PATH"` 加入 `~/.zshrc`。
 
 ### 1. Tesseract + 中文语言包
 
