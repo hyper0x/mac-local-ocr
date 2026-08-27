@@ -54,11 +54,14 @@ _EPILOG = """\
 
 说明：
   - 完全本地识别，不联网不上云；引擎为 macOS 内置 Vision 框架，M1 原生加速
+  - 支持图片格式：PNG / JPEG / TIFF / HEIC / BMP 等（Vision 框架可读即可）
+  - 默认输出纯文本（每条一行）；--json 输出结构化结果（text/confidence/bbox）
   - 首次使用前需先跑 mac-ocr setup 搭建 Apple Vision 环境（pyobjc venv）
+  - 自定义 venv 路径：export MAC_OCR_VENV_DIR=<DIR>（须与 mac-ocr setup --venv-dir 一致）
   - 自动用 venv python 自我重启以加载 pyobjc，无需手动操作
   - 默认 fast 精度，中文效果通常更好；置信度过低会自动回退 accurate
-  - --json 输出每条含 text / confidence / bbox 归一化坐标
   - --debug 在图上绘制红色检测框，默认保存为 <原名>_debug.png（--debug-output 可指定路径）
+  - 退出码：0 成功 / 1 失败（文件不存在、无法读取、环境缺失等）
   - 外部环境注入的确认参数（如 --bypass=...）会被静默忽略，不影响使用
 """
 
@@ -200,7 +203,7 @@ def build_parser():
     parser.add_argument("--debug", action="store_true",
                         help="在图上绘制红色检测框，另存为 <原名>_debug.png")
     parser.add_argument("--debug-output", default=None, metavar="PATH",
-                        help="调试图片输出路径（配合 --debug 使用）")
+                        help="调试图片输出路径（仅配合 --debug 生效，默认 <原名>_debug.png）")
     parser.add_argument("--bypass", default=None, help=argparse.SUPPRESS)
     parser.add_argument("--version", action="version", version=f"vision-ocr {VERSION}")
     return parser
