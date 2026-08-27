@@ -148,7 +148,7 @@ brew install tesseract                 # 自带 eng（英文）
 ./scripts/mac-ocr setup                # 自动下载标准版中文语言包
 ```
 
-语言包说明：tesseract 中文模型自 2018 年后官方未重训，`tesseract-lang` 的 685MB 语言包是 fast 版。本项目 `mac-ocr setup` 只下载**标准版**（chi_sim / chi_tra / 竖排，共约 100MB），放 `/opt/homebrew/share/tessdata/`。
+语言包说明：tesseract 中文模型自 2018 年后官方未重训，`tesseract-lang` 的 685MB 语言包是 fast 版。本项目 `mac-ocr setup` 只下载**标准版**（chi_sim / chi_tra / 竖排，共约 100MB），放到 `/opt/homebrew/share/tessdata/`。
 
 > 网络提示：国内直连 GitHub raw 常超时。`mac-ocr setup` 内置 `ghfast.top` / `gh-proxy.com` 镜像自动切换；如需指定：`./scripts/mac-ocr setup --mirror-url https://gh-proxy.com`（或环境变量 `MAC_OCR_MIRROR_URL=...`）。
 
