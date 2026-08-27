@@ -190,7 +190,7 @@ def build_parser():
         epilog=_EPILOG,
         formatter_class=fmt,
     )
-    parser.add_argument("image", metavar="图片", help="图片路径（png/jpg/tiff 等）")
+    parser.add_argument("image", metavar="IMAGE", help="图片路径（png/jpg/tiff 等）")
     parser.add_argument("--lang", default="zh-Hans", metavar="LANG",
                         help="识别语言，默认 zh-Hans（zh-Hans/zh-Hant/en-US/ja-JP/ko-KR，自动附带英文）")
     parser.add_argument("--level", default="fast", choices=["fast", "accurate"],
