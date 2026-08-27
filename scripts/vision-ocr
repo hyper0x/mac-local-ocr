@@ -40,16 +40,26 @@ VENV_DIR = os.environ.get("MAC_OCR_VENV_DIR", os.path.expanduser("~/.local/share
 VENV_PY3 = os.path.join(VENV_DIR, "bin", "python3")
 
 _EPILOG = """\
+示例：
+  vision-ocr 截图.png                     识别文字（默认中文+英文）
+  vision-ocr 截图.png --json              JSON 输出（含置信度/坐标）
+  vision-ocr 截图.png --lang en-US --level accurate
+  vision-ocr 截图.png --debug             另存一张带检测框的调试图
+
 识别语言（--lang）可选值：
-  zh-Hans   简体中文（默认，附带英文）
-  zh-Hant   繁体中文（附带英文）
+  zh-Hans   简体中文（默认，自动附带英文）
+  zh-Hant   繁体中文（自动附带英文）
   en-US     仅英文
   ja-JP     日文        ko-KR     韩文
 
 说明：
+  - 完全本地识别，不联网不上云；引擎为 macOS 内置 Vision 框架，M1 原生加速
+  - 首次使用前需先跑 mac-ocr setup 搭建 Apple Vision 环境（pyobjc venv）
+  - 自动用 venv python 自我重启以加载 pyobjc，无需手动操作
   - 默认 fast 精度，中文效果通常更好；置信度过低会自动回退 accurate
   - --json 输出每条含 text / confidence / bbox 归一化坐标
   - --debug 在图上绘制红色检测框，默认保存为 <原名>_debug.png（--debug-output 可指定路径）
+  - 外部环境注入的确认参数（如 --bypass=...）会被静默忽略，不影响使用
 """
 
 
@@ -182,7 +192,7 @@ def build_parser():
     )
     parser.add_argument("image", metavar="图片", help="图片路径（png/jpg/tiff 等）")
     parser.add_argument("--lang", default="zh-Hans", metavar="LANG",
-                        help="识别语言，默认 zh-Hans（可选 zh-Hans/zh-Hant/en-US/ja-JP/ko-KR）")
+                        help="识别语言，默认 zh-Hans（zh-Hans/zh-Hant/en-US/ja-JP/ko-KR，自动附带英文）")
     parser.add_argument("--level", default="fast", choices=["fast", "accurate"],
                         help="识别精度：fast（默认，中文效果通常更好）或 accurate")
     parser.add_argument("--json", action="store_true", dest="json_output",
