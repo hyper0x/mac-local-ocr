@@ -4,9 +4,9 @@
 mac-ocr — macOS 本地 OCR 三件套 · 统一命令行
 
 子命令：
-  setup            一键安装/修复（Tesseract + 标准版中文语言包 + vision-ocr + rapidocr）
+  setup            一键安装/修复（Tesseract + 标准版中文语言包 + Apple Vision + rapidocr）
   check            体检三件套就绪状态
-  ocr <图片>        用 Apple Vision 识别（vision-ocr 引擎）
+  ocr <图片>        用 Apple Vision 识别
 
 示例：
   mac-ocr setup
@@ -160,10 +160,10 @@ def setup_tesseract(force=False):
 
 
 def setup_vision():
-    print("---------- [2/4] vision-ocr（Apple Vision） ----------")
+    print("---------- [2/4] Apple Vision ----------")
     venv_py = VENV_PY3
     if os.path.isfile(venv_py) and _venv_has_vision(venv_py):
-        print(f"✔ vision-ocr 已就绪（venv: {VENV_DIR}）")
+        print(f"✔ Apple Vision 已就绪（venv: {VENV_DIR}）")
     else:
         print("↓ 搭建 venv + pyobjc ...")
         if not os.path.isfile(venv_py):
@@ -280,13 +280,13 @@ def cmd_check(args):
     else:
         print("❌ tesseract       未安装（brew install tesseract）")
 
-    # 2) vision-ocr（Apple Vision 引擎：venv + pyobjc）
+    # 2) Apple Vision（引擎：venv + pyobjc）
     if os.path.isfile(VENV_PY3) and _venv_has_vision(VENV_PY3):
-        print(f"✅ vision-ocr     {VENV_PY3} 可用")
+        print(f"✅ Apple Vision   {VENV_PY3} 可用")
     elif os.path.isfile(VENV_PY3):
-        print("⚠️ vision-ocr     venv 存在但 Vision 不可用（跑 mac-ocr setup 修复）")
+        print("⚠️ Apple Vision   venv 存在但 Vision 不可用（跑 mac-ocr setup 修复）")
     else:
-        print("❌ vision-ocr      未安装（跑 mac-ocr setup）")
+        print("❌ Apple Vision    未安装（跑 mac-ocr setup）")
 
     # 3) rapidocr
     if need("rapidocr"):
@@ -469,7 +469,7 @@ _MAIN_EPILOG = """\
 _SETUP_EPILOG = """\
 安装内容（全部幂等，可重复跑）：
   1. Tesseract（brew）+ 标准版中文语言包：chi_sim / chi_tra / 简体竖排 / 繁体竖排
-  2. vision-ocr：venv + pyobjc（Vision/Quartz/Cocoa，AppKit 在 Cocoa 内）
+  2. Apple Vision：venv + pyobjc（Vision/Quartz/Cocoa，AppKit 在 Cocoa 内）
   3. rapidocr：uv tool install rapidocr --with onnxruntime（必须带引擎，否则报
      ImportError: onnxruntime is not installed）
 
@@ -505,7 +505,7 @@ def build_parser():
         prog="mac-ocr",
         description=(
             "macOS 本地 OCR 三件套统一命令行：\n"
-            "  Tesseract（通用兜底）· vision-ocr（Apple Vision，零依赖）· "
+            "  Tesseract（通用兜底）· Apple Vision（零依赖）· "
             "rapidocr（PP-OCR，中文强）\n"
             "完全本地、隐私安全。一个命令搞定 安装 / 体检 / 识别。"
         ),
@@ -539,7 +539,7 @@ def build_parser():
         help="体检三件套就绪状态",
         description=(
             "逐项检查三件套就绪状态：\n"
-            "  Tesseract（含标准版中文语言包）/ vision-ocr（Apple Vision）"
+            "  Tesseract（含标准版中文语言包）/ Apple Vision"
             "/ rapidocr（含 onnxruntime 引擎）\n"
             "每项输出 ✅ / ❌ / ⚠️，并给出缺失时的修复提示。"
         ),

@@ -1,7 +1,7 @@
 # mac-local-ocr
 
 > **macOS 本地 OCR 工具** —— 零云依赖、纯本地运行、隐私安全
-> 三件套：**Apple Vision**（vision-ocr）· **RapidOCR**（rapidocr）· **Tesseract**
+> 三件套：**Apple Vision** · **RapidOCR**（rapidocr）· **Tesseract**
 
 一个开箱即用的 Agent Skill + **统一命令行**，让 AI Agent（或人）在 macOS 上**从 0 搭建**一套本地 OCR 工具，识别图片 / 截图 / 扫描件中的文字，中文优先。
 
@@ -51,7 +51,7 @@ cd mac-local-ocr
 |---|---|
 | `mac-ocr check` | 体检三件套就绪状态 |
 | `mac-ocr setup [--force] [--mirror-url <镜像>] [--venv-dir <目录>]` | 一键安装/修复（`--force` 强制重下语言包） |
-| `mac-ocr ocr <图片> [选项]` | Apple Vision 识别（vision-ocr 引擎） |
+| `mac-ocr ocr <图片> [选项]` | Apple Vision 识别 |
 
 **安装路径**（默认中性化，setup 时会打印将要安装到哪）：
 
@@ -74,11 +74,11 @@ export MAC_OCR_VENV_DIR=~/.venvs/mac-ocr   # 自定义路径需写入 ~/.zshrc �
 
 | 场景 | 工具 | 命令 |
 |---|---|---|
-| 日常 / 隐私 / 轻量 | **vision-ocr** | `mac-ocr ocr 图片.png` |
+| 日常 / 隐私 / 轻量 | **Apple Vision** | `mac-ocr ocr 图片.png` |
 | 中文 / 多语言强识别 | **rapidocr** | `rapidocr -img 图片.png` |
 | 通用 / 英文 / 竖排 | **tesseract** | `tesseract 图片.png stdout -l chi_sim` |
 
-### vision-ocr（Apple Vision）
+### Apple Vision
 
 ```bash
 mac-ocr ocr img.png                  # 中文+英文（默认 zh-Hans）
@@ -128,7 +128,7 @@ brew install tesseract                 # 自带 eng（英文）
 
 > 网络提示：国内直连 GitHub raw 常超时。`mac-ocr setup` 内置 `ghfast.top` / `gh-proxy.com` 镜像自动切换；如需指定：`./scripts/mac-ocr setup --mirror-url https://gh-proxy.com`（或环境变量 `MAC_OCR_MIRROR_URL=...`）。
 
-### 2. vision-ocr（Apple Vision）
+### 2. Apple Vision
 
 ```bash
 ./scripts/mac-ocr setup                # 自动：uv venv + pyobjc（Apple Vision 引擎）
@@ -174,7 +174,7 @@ brew install tesseract                 # 自带 eng（英文）
 ## FAQ
 
 **Q: 为什么不用 PaddleOCR 全家桶？**
-A: PaddleOCR 完整版需安装 paddlepaddle 深度学习框架（数百 MB + 高内存）。本项目用 RapidOCR（同一套 PP-OCR 模型 + onnxruntime），轻量得多；要最轻就用 vision-ocr（零依赖）。
+A: PaddleOCR 完整版需安装 paddlepaddle 深度学习框架（数百 MB + 高内存）。本项目用 RapidOCR（同一套 PP-OCR 模型 + onnxruntime），轻量得多；要最轻就用 Apple Vision（零依赖）。
 
 **Q: 为什么统一成一个命令？**
 A: 之前是 `setup.sh` + `ocr-check.sh` + `vision_ocr.py` 三个脚本三种职责。现统一为 `mac-ocr` 单文件 Python：安装 / 体检 / 识别一个命令搞定，公开使用者只需记一个命令。OCR 引擎必须用 Python（Apple Vision 框架无 shell 接口），所以全项目归一为 Python。
