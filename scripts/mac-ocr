@@ -13,21 +13,19 @@ mac-ocr — macOS 本地 OCR 三件套 · 统一命令行
 
 说明：
   - 本 CLI 仅依赖 Python 标准库（argparse/subprocess/urllib 等），系统 python3 直接可跑
-  - OCR 引擎需 pyobjc（Vision 框架），setup 会建专用 venv；识别时自动用 venv python 重启
+  - OCR 引擎需 pyobjc（Vision 框架），setup 会建专用 venv；识别命令 vision-ocr 自动用 venv python 重启
   - 识别请用配套独立命令 vision-ocr（由 setup 部署到 ~/.local/bin，任意目录可用）
   - mac-ocr 本身是安装/体检脚本，不进 PATH
   - --bypass 等外部注入的确认参数会被静默忽略，不影响使用
 """
 
 import argparse
-import json
 import os
 import re
 import shutil
 import subprocess
 import sys
 import urllib.request
-from pathlib import Path
 
 VERSION = "0.1.0"
 
@@ -108,14 +106,19 @@ def pick_mirror() -> str:
     return ""
 
 
-def download(url: str, dest: str) -> bool:
-    """原子下载：先写 .part 再 rename；失败清掉半截文件，避免下次被'已有'跳过。"""
+def download(url: str, dest: str, min_bytes: int = 1_000_000) -> bool:
+    """原子下载 + 最小尺寸校验：先写 .part，大小达标再 rename；失败清掉半截文件。
+
+    min_bytes 拦截镜像返回 200 错误页（通常几 KB）被存成坏 traineddata 的情况；
+    本项目语言包最小约 2.3MB，1MB 阈值安全。
+    """
     part = dest + ".part"
     p = subprocess.run(
         ["curl", "-fsSL", "--retry", "3", "--retry-delay", "2", "-o", part, url],
         capture_output=True,
     )
-    if p.returncode == 0 and os.path.isfile(part) and os.path.getsize(part) > 0:
+    size = os.path.getsize(part) if os.path.isfile(part) else 0
+    if p.returncode == 0 and size >= min_bytes:
         os.replace(part, dest)
         return True
     if os.path.isfile(part):
@@ -124,7 +127,7 @@ def download(url: str, dest: str) -> bool:
 
 
 def setup_tesseract(force=False):
-    print("---------- [1/4] Tesseract + 中文语言包 ----------")
+    print("---------- [1/3] Tesseract + 中文语言包 ----------")
     if need("tesseract"):
         out = subprocess.run(["tesseract", "--version"], capture_output=True, text=True)
         ver = (out.stdout or out.stderr).splitlines()[0] if (out.stdout or out.stderr) else "?"
@@ -159,7 +162,7 @@ def setup_tesseract(force=False):
 
 
 def setup_vision():
-    print("---------- [2/4] Apple Vision ----------")
+    print("---------- [2/3] Apple Vision ----------")
     venv_py = VENV_PY3
     if os.path.isfile(venv_py) and _venv_has_vision(venv_py):
         print(f"✔ Apple Vision 已就绪（venv: {VENV_DIR}）")
@@ -216,7 +219,7 @@ def _venv_has_vision(venv_py: str) -> bool:
 
 
 def setup_rapidocr():
-    print("---------- [3/4] rapidocr（PP-OCR + onnxruntime） ----------")
+    print("---------- [3/3] rapidocr（PP-OCR + onnxruntime） ----------")
     if _rapidocr_ok():
         print("✔ rapidocr 已就绪（含 onnxruntime 引擎）")
         return True
@@ -287,6 +290,7 @@ def cmd_setup(args):
 
 # ─── check：体检 ────────────────────────────────────────────────
 def cmd_check(args):
+    failed = False
     print("======================================")
     print(" macOS 本地 OCR 三件套 · 就绪检查")
     print("======================================")
@@ -306,6 +310,7 @@ def cmd_check(args):
             print("    ⚠️ 无中文语言包（跑 mac-ocr setup 下载标准版）")
     else:
         print("❌ tesseract       未安装（brew install tesseract）")
+        failed = True
 
     # 2) Apple Vision（引擎：venv + pyobjc）
     if os.path.isfile(VENV_PY3) and _venv_has_vision(VENV_PY3):
@@ -314,6 +319,7 @@ def cmd_check(args):
         print("⚠️ Apple Vision   venv 存在但 Vision 不可用（跑 mac-ocr setup 修复）")
     else:
         print("❌ Apple Vision    未安装（跑 mac-ocr setup）")
+        failed = True
 
     # 2.5) vision-ocr 全局识别命令
     vcmd = os.path.join(VISION_CMD_DIR, "vision-ocr")
@@ -321,6 +327,7 @@ def cmd_check(args):
         print(f"✅ vision-ocr     {vcmd}")
     else:
         print("❌ vision-ocr       未安装（跑 mac-ocr setup 生成）")
+        failed = True
 
     # 3) rapidocr
     if need("rapidocr"):
@@ -335,10 +342,11 @@ def cmd_check(args):
             print("   ⚠️ 无法定位 uv tool 环境")
     else:
         print("❌ rapidocr         未安装（uv tool install rapidocr --with onnxruntime）")
+        failed = True
 
     print("======================================")
     print("提示：缺失项跑 mac-ocr setup 一键安装")
-    return 0
+    return 1 if failed else 0
 
 
 
@@ -419,7 +427,8 @@ def build_parser():
             "逐项检查三件套就绪状态：\n"
             "  Tesseract（含标准版中文语言包）/ Apple Vision"
             "/ rapidocr（含 onnxruntime 引擎）\n"
-            "每项输出 ✅ / ❌ / ⚠️，并给出缺失时的修复提示。"
+            "每项输出 ✅ / ❌ / ⚠️，并给出缺失时的修复提示。\n"
+            "退出码：0 就绪（可含 ⚠️）/ 1 存在缺失项（❌）。"
         ),
         formatter_class=fmt,
     )

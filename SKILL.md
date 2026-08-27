@@ -1,6 +1,6 @@
 ---
 name: mac-local-ocr
-description: macOS 本地 OCR 工具（文字识别），三件套：Apple Vision（零依赖）、RapidOCR（rapidocr，PP-OCR 模型）、Tesseract（tesseract，含标准版中文语言包）。当用户需要识别图片/截图/扫描件中的文字、要 OCR 一张图/PDF、或要在 macOS 上从 0 搭建本地 OCR 环境时使用。触发词：OCR、识别图片文字、提取文字、文字识别、rapidocr、tesseract。
+description: macOS 本地 OCR 工具（文字识别），三件套：Apple Vision（零依赖）、RapidOCR（rapidocr，PP-OCR 模型）、Tesseract（tesseract，含标准版中文语言包）。当用户需要识别图片/截图/扫描件中的文字、要 OCR 一张图/PDF、或要在 macOS 上从 0 搭建本地 OCR 环境时使用。触发词：OCR、识别图片文字、提取文字、文字识别、vision-ocr、Apple Vision、截图文字、本地 OCR、rapidocr、tesseract。
 ---
 
 # mac-local-ocr — macOS 本地 OCR 工具
@@ -17,7 +17,7 @@ description: macOS 本地 OCR 工具（文字识别），三件套：Apple Visio
 
 | 子命令 | 作用 |
 |---|---|
-| `mac-ocr check` | 体检三件套就绪状态 |
+| `mac-ocr check` | 体检三件套就绪状态（退出码：0 就绪 / 1 缺失，可作脚本判断） |
 | `mac-ocr setup [--force]` | 一键安装/修复三件套（幂等，可重复跑） |
 
 识别用**独立命令** `vision-ocr`（Apple Vision，`mac-ocr setup` 自动部署到 `~/.local/bin`，PATH 内任意目录可用）：

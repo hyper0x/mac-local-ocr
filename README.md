@@ -218,6 +218,21 @@ A: 本项目全部本地识别，不上云。但注意：**下载模型/语言�
 
 ---
 
+## 卸载 / 清理
+
+各组件独立安装，按需单独清理：
+
+```bash
+rm ~/.local/bin/vision-ocr                    # 全局识别命令（软链）
+rm -rf ~/.local/share/mac-ocr                 # Apple Vision venv（pyobjc）
+uv tool uninstall rapidocr                    # rapidocr（含 onnxruntime）
+brew uninstall tesseract                      # Tesseract（如不再需要）
+rm /opt/homebrew/share/tessdata/chi_*.traineddata   # 本项目下载的 4 个中文语言包
+                                              # （Intel Mac 路径为 /usr/local/share/tessdata）
+```
+
+---
+
 ## License
 
 MIT

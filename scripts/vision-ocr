@@ -220,21 +220,26 @@ def main(argv=None):
         build_parser().print_help()
         return 0
 
-    if not IN_VENV:
-        if not os.path.isfile(VENV_PY3):
-            print("✘ 需要先跑 mac-ocr setup 搭建 Apple Vision 环境", file=sys.stderr)
-            return 1
-        if not _venv_has_vision(VENV_PY3):
-            print("✘ Apple Vision 环境异常（跑 mac-ocr setup 修复）", file=sys.stderr)
-            return 1
-        # 自我重启到 venv python（引擎需要 pyobjc/Vision）
-        env = dict(os.environ, MAC_OCR_IN_VENV="1")
-        p = subprocess.run([VENV_PY3, os.path.realpath(__file__)] + argv, env=env)
-        return p.returncode
-
+    # 参数解析与文件检查放在 venv 重启之前：坏参数/文件缺失立即报错，不白白重启 venv
     parser = build_parser()
     args = parser.parse_args(argv)
-    return run_engine(args)
+    if not os.path.isfile(args.image):
+        print(f"错误: 文件不存在 - {args.image}", file=sys.stderr)
+        return 1
+
+    if IN_VENV:
+        return run_engine(args)
+
+    if not os.path.isfile(VENV_PY3):
+        print("✘ 需要先跑 mac-ocr setup 搭建 Apple Vision 环境", file=sys.stderr)
+        return 1
+    if not _venv_has_vision(VENV_PY3):
+        print("✘ Apple Vision 环境异常（跑 mac-ocr setup 修复）", file=sys.stderr)
+        return 1
+    # 自我重启到 venv python（引擎需要 pyobjc/Vision）
+    env = dict(os.environ, MAC_OCR_IN_VENV="1")
+    p = subprocess.run([VENV_PY3, os.path.realpath(__file__)] + argv, env=env)
+    return p.returncode
 
 
 if __name__ == "__main__":
