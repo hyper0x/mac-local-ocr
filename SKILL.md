@@ -11,17 +11,22 @@ description: macOS 本地 OCR 工具（文字识别），三件套：Apple Visio
 - 用户要在 macOS 上搭建或检查本地 OCR 环境
 - 关键词：OCR、识别图片文字、提取文字、文字识别
 
-## 统一入口 `mac-ocr`
+## 命令分工：`mac-ocr`（安装/体检）+ `vision-ocr`（识别）
 
-本项目所有操作统一走一个命令 `<skill目录>/scripts/mac-ocr`（单文件 Python，仅标准库，系统 python3 直接可跑）：
+管理走 `<skill目录>/scripts/mac-ocr`（单文件 Python，仅标准库，系统 python3 直接可跑）：
 
 | 子命令 | 作用 |
 |---|---|
 | `mac-ocr check` | 体检三件套就绪状态 |
 | `mac-ocr setup [--force]` | 一键安装/修复三件套（幂等，可重复跑） |
-| `mac-ocr vision <图片>` | Apple Vision 识别 |
 
-> 兼容性：`mac-ocr 图片.png` 省略子命令时自动按 `ocr` 处理；外部环境可能注入额外确认参数，本命令会自动忽略，不影响使用。
+识别用**独立命令** `vision-ocr`（Apple Vision，`mac-ocr setup` 自动部署到 `~/.local/bin`，PATH 内任意目录可用）：
+
+| 命令 | 作用 |
+|---|---|
+| `vision-ocr <图片> [选项]` | Apple Vision 识别 |
+
+> 兼容性：`mac-ocr` / `vision-ocr` 在自动化环境执行时，外部环境可能注入额外确认参数（如 `--bypass=...`），本命令会自动忽略，不影响使用。
 
 ## 第一步：检查就绪状态
 
@@ -35,7 +40,7 @@ description: macOS 本地 OCR 工具（文字识别），三件套：Apple Visio
 
 | 场景 | 工具 | 命令 |
 |---|---|---|
-| 日常 / 隐私 / 轻量 | **Apple Vision** | `mac-ocr vision 图片.png` |
+| 日常 / 隐私 / 轻量 | **Apple Vision** | `vision-ocr 图片.png` |
 | 中文 / 多语言强识别 | **rapidocr** | `rapidocr -img 图片.png` |
 | 通用 / 英文 / 批量 / 竖排 | **tesseract** | `tesseract 图片.png stdout -l chi_sim` |
 | 扫描版 PDF | pdf skill（底层 pytesseract） | 走 pdf skill |
@@ -44,12 +49,12 @@ description: macOS 本地 OCR 工具（文字识别），三件套：Apple Visio
 
 ### Apple Vision（零依赖，本地）
 ```bash
-mac-ocr vision img.png                    # 中文+英文（默认 zh-Hans）
-mac-ocr vision img.png --lang zh-Hant     # 繁体
-mac-ocr vision img.png --lang en-US       # 仅英文
-mac-ocr vision img.png --json             # JSON：文本+置信度+坐标
-mac-ocr vision img.png --level accurate   # 精确模式
-mac-ocr vision img.png --debug            # 输出带检测框的图片
+vision-ocr img.png                      # 中文+英文（默认 zh-Hans）
+vision-ocr img.png --lang zh-Hant       # 繁体
+vision-ocr img.png --lang en-US         # 仅英文
+vision-ocr img.png --json               # JSON：文本+置信度+坐标
+vision-ocr img.png --level accurate     # 精确模式
+vision-ocr img.png --debug              # 输出带检测框的图片
 ```
 
 ### rapidocr（RapidOCR / PP-OCR 模型，中文强）
