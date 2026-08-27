@@ -210,6 +210,12 @@ def setup_vision_cmd() -> bool:
         print(f"✘ 创建软链失败: {e}")
         return False
     print(f"✔ 全局识别命令已生成: {cmd_path}")
+    # 检测部署目录是否在当前 PATH（shell 无关：只看实际值；normpath 处理 ../ 等等价写法）
+    path_dirs = [d for d in os.environ.get("PATH", "").split(os.pathsep) if d]
+    target = os.path.normpath(VISION_CMD_DIR)
+    if target not in [os.path.normpath(d) for d in path_dirs]:
+        print(f"⚠️ {VISION_CMD_DIR} 不在 PATH 中，请将其加入你所用 shell 的配置文件"
+              f"（如 ~/.zshrc / ~/.bashrc / ~/.config/fish/config.fish），重开终端后生效")
     return True
 
 

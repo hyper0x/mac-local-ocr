@@ -133,13 +133,13 @@ Python 包与环境管理工具，`mac-ocr setup` 用它搭建 Apple Vision 的 
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-装完重开终端（或 `source ~/.zshrc`）后验证：
+装完重开终端后验证：
 
 ```bash
 uv --version
 ```
 
-> uv 官方安装脚本默认装到 `~/.local/bin` 并自动写 shell 配置；若 `uv` 命令未找到，把 `export PATH="$HOME/.local/bin:$PATH"` 加入 `~/.zshrc`。
+> uv 官方安装脚本默认装到 `~/.local/bin` 并自动写 shell 配置；若 `uv` 命令未找到，把 `export PATH="$HOME/.local/bin:$PATH"` 加入你的 shell 配置文件（`~/.zshrc` / `~/.bashrc` / `~/.config/fish/config.fish` 等，按实际使用的 shell 选）。
 
 ### 1. Tesseract + 中文语言包
 
