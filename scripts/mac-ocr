@@ -6,13 +6,13 @@ mac-ocr — macOS 本地 OCR 三件套 · 统一命令行
 子命令：
   setup            一键安装/修复（Tesseract + 标准版中文语言包 + Apple Vision + rapidocr）
   check            体检三件套就绪状态
-  ocr <图片>        用 Apple Vision 识别
+  vision <图片>     用 Apple Vision 识别
 
 示例：
   mac-ocr setup
   mac-ocr check
-  mac-ocr ocr 图片.png --json
-  mac-ocr 图片.png              # 省略子命令时按 ocr 处理
+  mac-ocr vision 图片.png --json
+  mac-ocr 图片.png              # 省略子命令时按 vision 处理
 
 说明：
   - 本 CLI 仅依赖 Python 标准库（argparse/subprocess/urllib 等），系统 python3 直接可跑
@@ -247,7 +247,7 @@ def cmd_setup(args):
     print()
     print("===== 安装完成 =====")
     print("体检:        mac-ocr check")
-    print("识别:        mac-ocr ocr 图片.png")
+    print("识别:        mac-ocr vision 图片.png")
     if args.venv_dir:
         print("⚠️ 本次使用了自定义 venv 路径，后续识别/体检请保持对应环境变量：")
         print(f"   export MAC_OCR_VENV_DIR={VENV_DIR}")
@@ -307,8 +307,8 @@ def cmd_check(args):
     return 0
 
 
-# ─── ocr：Apple Vision 引擎 ─────────────────────────────────────
-def cmd_ocr(args):
+# ─── vision：Apple Vision 引擎 ─────────────────────────────────
+def cmd_vision(args):
     if not os.path.isfile(args.image):
         print(f"错误: 文件不存在 - {args.image}", file=sys.stderr)
         return 1
@@ -320,7 +320,7 @@ def cmd_ocr(args):
     if not os.path.isfile(VENV_PY3):
         print("✘ 需要先跑 mac-ocr setup 搭建 Apple Vision 环境", file=sys.stderr)
         return 1
-    argv = [VENV_PY3, os.path.realpath(__file__), "ocr", args.image]
+    argv = [VENV_PY3, os.path.realpath(__file__), "vision", args.image]
     if args.lang != "zh-Hans":
         argv += ["--lang", args.lang]
     if args.level != "fast":
@@ -454,11 +454,11 @@ _MAIN_EPILOG = """\
   mac-ocr setup                          一键安装/修复（幂等，缺什么装什么）
   mac-ocr setup --force                  强制重下已存在的语言包
   mac-ocr setup --mirror-url https://gh-proxy.com   指定镜像（国内直连超时用）
-  mac-ocr ocr 截图.png                   识别文字（默认中文+英文）
-  mac-ocr ocr 截图.png --json            JSON 输出（含置信度/坐标）
-  mac-ocr ocr 截图.png --lang en-US --level accurate
-  mac-ocr ocr 截图.png --debug           另存一张带检测框的调试图
-  mac-ocr 截图.png                       省略子命令，等价 mac-ocr ocr 截图.png
+  mac-ocr vision 截图.png                识别文字（默认中文+英文）
+  mac-ocr vision 截图.png --json         JSON 输出（含置信度/坐标）
+  mac-ocr vision 截图.png --lang en-US --level accurate
+  mac-ocr vision 截图.png --debug        另存一张带检测框的调试图
+  mac-ocr 截图.png                       省略子命令，等价 mac-ocr vision 截图.png
 
 说明：
   - 全部本地识别，不联网不上云；模型/语言包下载走国内镜像自动切换
@@ -485,7 +485,7 @@ _SETUP_EPILOG = """\
   mac-ocr setup --venv-dir ~/.venvs/mac-ocr
 """
 
-_OCR_EPILOG = """\
+_VISION_EPILOG = """\
 识别语言（--lang）可选值：
   zh-Hans   简体中文（默认，附带英文）
   zh-Hant   繁体中文（附带英文）
@@ -547,38 +547,38 @@ def build_parser():
     )
     p_check.add_argument("--bypass", default=None, help=argparse.SUPPRESS)
 
-    p_ocr = sub.add_parser(
-        "ocr",
+    p_vision = sub.add_parser(
+        "vision",
         help="用 Apple Vision 识别图片文字",
         description=(
             "调用 macOS 内置 Vision 框架识别图片中的文字，完全本地、"
             "M1 原生加速。默认识别中文+英文。"
         ),
-        epilog=_OCR_EPILOG,
+        epilog=_VISION_EPILOG,
         formatter_class=fmt,
     )
-    p_ocr.add_argument("image", metavar="图片", help="图片路径（png/jpg/tiff 等）")
-    p_ocr.add_argument("--lang", default="zh-Hans", metavar="LANG",
-                       help="识别语言，默认 zh-Hans（可选 zh-Hans/zh-Hant/en-US/ja-JP/ko-KR）")
-    p_ocr.add_argument("--level", default="fast", choices=["fast", "accurate"],
-                       help="识别精度：fast（默认，中文效果通常更好）或 accurate")
-    p_ocr.add_argument("--json", action="store_true", dest="json_output",
-                       help="JSON 格式输出：每条含 text / confidence / bbox 坐标")
-    p_ocr.add_argument("--debug", action="store_true",
-                       help="在图上绘制红色检测框，另存为 <原名>_debug.png")
-    p_ocr.add_argument("--debug-output", default=None, metavar="PATH",
-                       help="调试图片输出路径（配合 --debug 使用）")
-    p_ocr.add_argument("--bypass", default=None, help=argparse.SUPPRESS)
+    p_vision.add_argument("image", metavar="图片", help="图片路径（png/jpg/tiff 等）")
+    p_vision.add_argument("--lang", default="zh-Hans", metavar="LANG",
+                          help="识别语言，默认 zh-Hans（可选 zh-Hans/zh-Hant/en-US/ja-JP/ko-KR）")
+    p_vision.add_argument("--level", default="fast", choices=["fast", "accurate"],
+                          help="识别精度：fast（默认，中文效果通常更好）或 accurate")
+    p_vision.add_argument("--json", action="store_true", dest="json_output",
+                          help="JSON 格式输出：每条含 text / confidence / bbox 坐标")
+    p_vision.add_argument("--debug", action="store_true",
+                          help="在图上绘制红色检测框，另存为 <原名>_debug.png")
+    p_vision.add_argument("--debug-output", default=None, metavar="PATH",
+                          help="调试图片输出路径（配合 --debug 使用）")
+    p_vision.add_argument("--bypass", default=None, help=argparse.SUPPRESS)
     return parser
 
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
 
-    # 兼容：mac-ocr 图片.png（省略子命令 -> 补 ocr；容忍前置 --opt=value 形式选项）
+    # 兼容：mac-ocr 图片.png（省略子命令 -> 补 vision；容忍前置 --opt=value 形式选项）
     first_pos = next((i for i, a in enumerate(argv) if not a.startswith("-")), None)
-    if first_pos is not None and argv[first_pos] not in ("setup", "check", "ocr"):
-        argv.insert(first_pos, "ocr")
+    if first_pos is not None and argv[first_pos] not in ("setup", "check", "vision"):
+        argv.insert(first_pos, "vision")
 
     parser = build_parser()
     args, _unknown = parser.parse_known_args(argv)
@@ -591,8 +591,8 @@ def main(argv=None):
         return cmd_setup(args)
     if args.cmd == "check":
         return cmd_check(args)
-    if args.cmd == "ocr":
-        return cmd_ocr(args)
+    if args.cmd == "vision":
+        return cmd_vision(args)
 
     parser.print_help()
     return 0

@@ -19,7 +19,7 @@ description: macOS 本地 OCR 工具（文字识别），三件套：Apple Visio
 |---|---|
 | `mac-ocr check` | 体检三件套就绪状态 |
 | `mac-ocr setup [--force]` | 一键安装/修复三件套（幂等，可重复跑） |
-| `mac-ocr ocr <图片>` | Apple Vision 识别 |
+| `mac-ocr vision <图片>` | Apple Vision 识别 |
 
 > 兼容性：`mac-ocr 图片.png` 省略子命令时自动按 `ocr` 处理；外部环境可能注入额外确认参数，本命令会自动忽略，不影响使用。
 
@@ -35,7 +35,7 @@ description: macOS 本地 OCR 工具（文字识别），三件套：Apple Visio
 
 | 场景 | 工具 | 命令 |
 |---|---|---|
-| 日常 / 隐私 / 轻量 | **Apple Vision** | `mac-ocr ocr 图片.png` |
+| 日常 / 隐私 / 轻量 | **Apple Vision** | `mac-ocr vision 图片.png` |
 | 中文 / 多语言强识别 | **rapidocr** | `rapidocr -img 图片.png` |
 | 通用 / 英文 / 批量 / 竖排 | **tesseract** | `tesseract 图片.png stdout -l chi_sim` |
 | 扫描版 PDF | pdf skill（底层 pytesseract） | 走 pdf skill |
@@ -44,12 +44,12 @@ description: macOS 本地 OCR 工具（文字识别），三件套：Apple Visio
 
 ### Apple Vision（零依赖，本地）
 ```bash
-mac-ocr ocr img.png                    # 中文+英文（默认 zh-Hans）
-mac-ocr ocr img.png --lang zh-Hant     # 繁体
-mac-ocr ocr img.png --lang en-US       # 仅英文
-mac-ocr ocr img.png --json             # JSON：文本+置信度+坐标
-mac-ocr ocr img.png --level accurate   # 精确模式
-mac-ocr ocr img.png --debug            # 输出带检测框的图片
+mac-ocr vision img.png                    # 中文+英文（默认 zh-Hans）
+mac-ocr vision img.png --lang zh-Hant     # 繁体
+mac-ocr vision img.png --lang en-US       # 仅英文
+mac-ocr vision img.png --json             # JSON：文本+置信度+坐标
+mac-ocr vision img.png --level accurate   # 精确模式
+mac-ocr vision img.png --debug            # 输出带检测框的图片
 ```
 
 ### rapidocr（RapidOCR / PP-OCR 模型，中文强）

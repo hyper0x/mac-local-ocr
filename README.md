@@ -51,7 +51,7 @@ cd mac-local-ocr
 |---|---|
 | `mac-ocr check` | 体检三件套就绪状态 |
 | `mac-ocr setup [--force] [--mirror-url <镜像>] [--venv-dir <目录>]` | 一键安装/修复（`--force` 强制重下语言包） |
-| `mac-ocr ocr <图片> [选项]` | Apple Vision 识别 |
+| `mac-ocr vision <图片> [选项]` | Apple Vision 识别 |
 
 **安装路径**（默认中性化，setup 时会打印将要安装到哪）：
 
@@ -74,19 +74,19 @@ export MAC_OCR_VENV_DIR=~/.venvs/mac-ocr   # 自定义路径需写入 ~/.zshrc �
 
 | 场景 | 工具 | 命令 |
 |---|---|---|
-| 日常 / 隐私 / 轻量 | **Apple Vision** | `mac-ocr ocr 图片.png` |
+| 日常 / 隐私 / 轻量 | **Apple Vision** | `mac-ocr vision 图片.png` |
 | 中文 / 多语言强识别 | **rapidocr** | `rapidocr -img 图片.png` |
 | 通用 / 英文 / 竖排 | **tesseract** | `tesseract 图片.png stdout -l chi_sim` |
 
 ### Apple Vision
 
 ```bash
-mac-ocr ocr img.png                  # 中文+英文（默认 zh-Hans）
-mac-ocr ocr img.png --lang zh-Hant   # 繁体
-mac-ocr ocr img.png --lang en-US     # 仅英文
-mac-ocr ocr img.png --json           # JSON（文本+置信度+坐标）
-mac-ocr ocr img.png --level accurate # 精确模式
-mac-ocr ocr img.png --debug          # 输出带检测框的图片
+mac-ocr vision img.png                 # 中文+英文（默认 zh-Hans）
+mac-ocr vision img.png --lang zh-Hant  # 繁体
+mac-ocr vision img.png --lang en-US    # 仅英文
+mac-ocr vision img.png --json          # JSON（文本+置信度+坐标）
+mac-ocr vision img.png --level accurate # 精确模式
+mac-ocr vision img.png --debug         # 输出带检测框的图片
 ```
 
 ### rapidocr（RapidOCR / PP-OCR）
@@ -188,7 +188,7 @@ brew install tesseract                 # 自带 eng（英文）
 
 ```
 用户要识别图片/截图/扫描件文字
-  ├─ 日常/轻量/隐私 → mac-ocr ocr 图片.png
+  ├─ 日常/轻量/隐私 → mac-ocr vision 图片.png
   ├─ 中文/多语言强  → rapidocr
   ├─ 英文/竖排/通用 → tesseract
   └─ 环境缺失      → 先 mac-ocr check，再按提示 mac-ocr setup
@@ -201,8 +201,8 @@ brew install tesseract                 # 自带 eng（英文）
 **Q: 为什么不用 PaddleOCR 全家桶？**
 A: PaddleOCR 完整版需安装 paddlepaddle 深度学习框架（数百 MB + 高内存）。本项目用 RapidOCR（同一套 PP-OCR 模型 + onnxruntime），轻量得多；要最轻就用 Apple Vision（零依赖）。
 
-**Q: 为什么统一成一个命令？**
-A: 之前是 `setup.sh` + `ocr-check.sh` + `vision_ocr.py` 三个脚本三种职责。现统一为 `mac-ocr` 单文件 Python：安装 / 体检 / 识别一个命令搞定，公开使用者只需记一个命令。OCR 引擎必须用 Python（Apple Vision 框架无 shell 接口），所以全项目归一为 Python。
+**Q: 为什么用 `mac-ocr`？它统一了什么？**
+A: `mac-ocr` 统一的是**安装 / 体检 / Apple Vision 识别**三件事——安装（setup）和体检（check）覆盖三件套，识别（vision）封装 Apple Vision。rapidocr / tesseract 是成熟独立 CLI（各有完整参数体系，如 `rapidocr -img`、`tesseract --psm/-l`），**保留原生命令直接用**，不重复造轮子。按场景选工具：日常轻量用 `mac-ocr vision`，中文/多语言用 `rapidocr`，英文/竖排用 `tesseract`。
 
 **Q: tesseract 中文识别有空格（`简 体 中 文`）？**
 A: 正常现象，tesseract 中文输出字间带空格，不是 bug；处理时去掉空格即可。
