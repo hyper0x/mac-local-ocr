@@ -50,7 +50,7 @@ cd mac-local-ocr
 | 子命令 | 作用 |
 |---|---|
 | `mac-ocr check` | 体检三件套就绪状态 |
-| `mac-ocr setup [--force] [--mirror-url <镜像>] [--venv-dir <目录>]` | 一键安装/修复（`--force` 强制重下语言包） |
+| `mac-ocr setup [--force] [--mirror-url <镜像>]` | 一键安装/修复（`--force` 强制重下语言包） |
 
 **识别命令**（setup 自动部署到 `~/.local/bin`，PATH 内任意目录可用）：
 
@@ -58,16 +58,10 @@ cd mac-local-ocr
 |---|---|
 | `vision-ocr <图片> [选项]` | Apple Vision 识别（独立命令，见下方使用指南） |
 
-**安装路径**（默认中性化，setup 时会打印将要安装到哪）：
+**安装路径**（setup 时会打印将要安装到哪）：
 
-| 内容 | 默认 | 修改方式 |
-|---|---|---|
-| Python venv（pyobjc） | `~/.local/share/mac-ocr/venv` | `--venv-dir <目录>` 或环境变量 `MAC_OCR_VENV_DIR` |
-
-```bash
-./scripts/mac-ocr setup --venv-dir ~/.venvs/mac-ocr
-export MAC_OCR_VENV_DIR=~/.venvs/mac-ocr   # 自定义路径需写入 ~/.zshrc 供识别/体检使用
-```
+- Python venv（pyobjc）-> `~/.local/share/mac-ocr/venv`
+  高级用法：`export MAC_OCR_VENV_DIR=<目录>` 可覆盖（setup / 识别 / 体检同源读取）
 
 兼容性：`mac-ocr` / `vision-ocr` 在 AI agent 等自动化环境执行时，环境可能注入 `--bypass=platform/agent/task` 形式的确认参数（三段式，每段为字母数字或 `._-`），本命令自动静默接受，不影响使用。
 
